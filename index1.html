@@ -61,7 +61,7 @@
         import { BookOpen, List, Sun, User, LogOut, Zap, Heart, BookX, CheckCircle, XCircle, ArrowRightLeft } from 'lucide-react';
         import confetti from 'canvas-confetti';
 
-        // STORAGE KEYS
+        // STORAGE KEYS - Updated per request
         const STORAGE_PREFIX = 'Chinese4-L1-4';
         const KEY_USERS = `${STORAGE_PREFIX}_users`;
         
@@ -69,164 +69,165 @@
         const getKeyMistakes = (user) => `${STORAGE_PREFIX}_mistake_${user}`;
         const getKeyProgress = (user) => `${STORAGE_PREFIX}_progress_${user}`;
 
-        // 資料庫：字形辨正 (完整收錄)
-        // Note: distractors are manually curated to be visually similar or homophones.
+        // 資料庫：字形辨正
+        // Data structure flattened for Quiz, but grouped concepts preserved for Study Mode logic if needed.
+        // distractors are manually curated to be "similar" and "misleading".
         const rawData = [
             // 1
-            { id: 101, question: "無動於「ㄓㄨㄥ」", answer: "衷", distractors: ["鍾", "中", "忠"], note: "比較：一見「ㄓㄨㄥ」情 (鍾)" },
-            { id: 102, question: "一見「ㄓㄨㄥ」情", answer: "鍾", distractors: ["衷", "中", "鐘"], note: "比較：無動於「ㄓㄨㄥ」 (衷)" },
+            { id: 1, group: 1, question: "無動於「ㄓㄨㄥ」", answer: "衷", distractors: ["鍾", "中", "忠"], note: "比較：一見「ㄓㄨㄥ」情 (鍾)" },
+            { id: 2, group: 1, question: "一見「ㄓㄨㄥ」情", answer: "鍾", distractors: ["衷", "中", "鐘"], note: "比較：無動於「ㄓㄨㄥ」 (衷)" },
             // 2
-            { id: 201, question: "打躬作「ㄧ」", answer: "揖", distractors: ["輯", "緝", "依"], note: "相同：與「ㄧ」讓而升同字" },
-            { id: 202, question: "「ㄧ」讓而升", answer: "揖", distractors: ["輯", "依", "壹"], note: "相同：與打躬作「ㄧ」同字" },
-            { id: 203, question: "「ㄧ」樣畫葫蘆", answer: "依", distractors: ["揖", "衣", "伊"], note: "不同：與「揖」讓而升不同" },
-            { id: 204, question: "通「ㄑㄧˋ」", answer: "緝", distractors: ["揖", "輯", "葺"], note: "不同：與「揖」讓而升不同" },
-            { id: 205, question: "編「ㄐㄧˊ」", answer: "輯", distractors: ["揖", "緝", "集"], note: "不同：與「揖」讓而升不同" },
+            { id: 3, group: 2, question: "打躬作「ㄧ」", answer: "揖", distractors: ["輯", "緝", "依"], note: "相同：與「ㄧ」讓而升同字" },
+            { id: 4, group: 2, question: "「ㄧ」讓而升", answer: "揖", distractors: ["輯", "依", "壹"], note: "相同：與打躬作「ㄧ」同字" },
+            { id: 5, group: 2, question: "「ㄧ」樣畫葫蘆", answer: "依", distractors: ["揖", "衣", "伊"], note: "不同：與「揖」讓而升不同" },
+            { id: 6, group: 2, question: "通「ㄑㄧˋ」", answer: "緝", distractors: ["揖", "輯", "葺"], note: "不同：與「揖」讓而升不同" },
+            { id: 7, group: 2, question: "編「ㄐㄧˊ」", answer: "輯", distractors: ["揖", "緝", "集"], note: "不同：與「揖」讓而升不同" },
             // 3
-            { id: 301, question: "暗「ㄐㄧㄢˋ」傷人", answer: "箭", distractors: ["劍", "鑑", "建"], note: "不同：與「ㄐㄧㄢˋ」及履及 (劍) 不同" },
-            { id: 302, question: "「ㄐㄧㄢˋ」及履及", answer: "劍", distractors: ["箭", "見", "健"], note: "不同：與暗「ㄐㄧㄢˋ」傷人 (箭) 不同" },
-            { id: 303, question: "關「ㄐㄧㄢˋ」", answer: "鍵", distractors: ["箭", "建", "健"], note: "不同：與暗「ㄐㄧㄢˋ」傷人 (箭) 不同" },
+            { id: 8, group: 3, question: "暗「ㄐㄧㄢˋ」傷人", answer: "箭", distractors: ["劍", "鑑", "建"], note: "不同：與「ㄐㄧㄢˋ」及履及 (劍) 不同" },
+            { id: 9, group: 3, question: "「ㄐㄧㄢˋ」及履及", answer: "劍", distractors: ["箭", "見", "健"], note: "不同：與暗「ㄐㄧㄢˋ」傷人 (箭) 不同" },
+            { id: 10, group: 3, question: "關「ㄐㄧㄢˋ」", answer: "鍵", distractors: ["箭", "建", "健"], note: "不同：與暗「ㄐㄧㄢˋ」傷人 (箭) 不同" },
             // 4
-            { id: 401, question: "萬目「ㄎㄨㄟˊ ㄎㄨㄟˊ」", answer: "睽", distractors: ["揆", "葵", "魁"], note: "不同：與閣「ㄎㄨㄟˊ」 (揆) 不同" },
-            { id: 402, question: "閣「ㄎㄨㄟˊ」", answer: "揆", distractors: ["睽", "葵", "魁"], note: "不同：與萬目「ㄎㄨㄟˊ」 (睽) 不同" },
-            { id: 403, question: "「ㄎㄨㄟˊ」違已久", answer: "睽", distractors: ["揆", "葵", "魁"], note: "相同：與萬目「ㄎㄨㄟˊ」同字" },
-            { id: 404, question: "向日「ㄎㄨㄟˊ」", answer: "葵", distractors: ["睽", "揆", "魁"], note: "不同：植物名" },
-            { id: 405, question: "罪「ㄎㄨㄟˊ」禍首", answer: "魁", distractors: ["睽", "揆", "葵"], note: "不同：首領之意" },
+            { id: 11, group: 4, question: "萬目「ㄎㄨㄟˊ ㄎㄨㄟˊ」", answer: "睽", distractors: ["揆", "葵", "魁"], note: "不同：與閣「ㄎㄨㄟˊ」 (揆) 不同" },
+            { id: 12, group: 4, question: "閣「ㄎㄨㄟˊ」", answer: "揆", distractors: ["睽", "葵", "魁"], note: "不同：與萬目「ㄎㄨㄟˊ」 (睽) 不同" },
+            { id: 13, group: 4, question: "「ㄎㄨㄟˊ」違已久", answer: "睽", distractors: ["揆", "葵", "魁"], note: "相同：與萬目「ㄎㄨㄟˊ」同字" },
+            { id: 14, group: 4, question: "向日「ㄎㄨㄟˊ」", answer: "葵", distractors: ["睽", "揆", "魁"], note: "不同：植物名" },
+            { id: 15, group: 4, question: "罪「ㄎㄨㄟˊ」禍首", answer: "魁", distractors: ["睽", "揆", "葵"], note: "不同：首領之意" },
             // 5
-            { id: 501, question: "陶「ㄓㄨˋ」", answer: "鑄", distractors: ["躊", "注", "助"], note: "相同：與「ㄓㄨˋ」成大錯同字" },
-            { id: 502, question: "「ㄓㄨˋ」成大錯", answer: "鑄", distractors: ["躊", "駐", "祝"], note: "相同：與陶「ㄓㄨˋ」同字" },
-            { id: 503, question: "躊「ㄔㄡˊ」", answer: "躇", distractors: ["鑄", "籌", "疇"], note: "比較：陶「ㄓㄨˋ」 (鑄)" }, 
-            { id: 504, question: "運籌帷「ㄨㄛˋ」", answer: "幄", distractors: ["握", "渥", "沃"], note: "比較：陶「ㄓㄨˋ」 (鑄)" },
+            { id: 16, group: 5, question: "陶「ㄓㄨˋ」", answer: "鑄", distractors: ["躊", "注", "助"], note: "相同：與「ㄓㄨˋ」成大錯同字" },
+            { id: 17, group: 5, question: "「ㄓㄨˋ」成大錯", answer: "鑄", distractors: ["躊", "駐", "祝"], note: "相同：與陶「ㄓㄨˋ」同字" },
+            { id: 18, group: 5, question: "躊「ㄔㄡˊ」", answer: "躇", distractors: ["鑄", "籌", "疇"], note: "比較：陶「ㄓㄨˋ」 (鑄)" }, 
+            { id: 19, group: 5, question: "運籌帷「ㄨㄛˋ」", answer: "幄", distractors: ["握", "渥", "沃"], note: "比較：陶「ㄓㄨˋ」 (鑄)" },
             // 6
-            { id: 601, question: "以國家為前「ㄊㄧˊ」", answer: "提", distractors: ["題", "堤", "啼"], note: "不同：與金榜「ㄊㄧˊ」名 (題) 不同" },
-            { id: 602, question: "金榜「ㄊㄧˊ」名", answer: "題", distractors: ["提", "堤", "蹄"], note: "不同：與前「ㄊㄧˊ」 (提) 不同" },
-            { id: 603, question: "耳「ㄊㄧˊ」面命", answer: "提", distractors: ["題", "堤", "逖"], note: "相同：與前「ㄊㄧˊ」同字" },
-            { id: 604, question: "小「ㄊㄧˊ」大作", answer: "題", distractors: ["提", "堤", "蹄"], note: "不同：與前「ㄊㄧˊ」 (提) 不同" },
+            { id: 20, group: 6, question: "以國家為前「ㄊㄧˊ」", answer: "提", distractors: ["題", "堤", "啼"], note: "不同：與金榜「ㄊㄧˊ」名 (題) 不同" },
+            { id: 21, group: 6, question: "金榜「ㄊㄧˊ」名", answer: "題", distractors: ["提", "堤", "蹄"], note: "不同：與前「ㄊㄧˊ」 (提) 不同" },
+            { id: 22, group: 6, question: "耳「ㄊㄧˊ」面命", answer: "提", distractors: ["題", "堤", "逖"], note: "相同：與前「ㄊㄧˊ」同字" },
+            { id: 23, group: 6, question: "小「ㄊㄧˊ」大作", answer: "題", distractors: ["提", "堤", "蹄"], note: "不同：與前「ㄊㄧˊ」 (提) 不同" },
             // 7
-            { id: 701, question: "「ㄐㄧㄝ」曉", answer: "揭", distractors: ["竭", "接", "結"], note: "不同：與「ㄐㄧㄝˊ」誠 (竭) 不同" },
-            { id: 702, question: "「ㄐㄧㄝˊ」誠", answer: "竭", distractors: ["揭", "潔", "結"], note: "不同：與「ㄐㄧㄝ」曉 (揭) 不同" },
-            { id: 703, question: "「ㄐㄧㄝ」穿真相", answer: "揭", distractors: ["竭", "接", "結"], note: "相同：與「ㄐㄧㄝ」曉同字" },
-            { id: 704, question: "「ㄐㄧㄝ」竿起義", answer: "揭", distractors: ["竭", "接", "結"], note: "相同：與「ㄐㄧㄝ」曉同字" },
-            { id: 705, question: "聲嘶力「ㄐㄧㄝˊ」", answer: "竭", distractors: ["揭", "潔", "杰"], note: "相同：與「ㄐㄧㄝˊ」誠同字" },
-            { id: 706, question: "「ㄒㄧㄝ」斯底里", answer: "歇", distractors: ["竭", "揭", "些"], note: "不同：與「ㄐㄧㄝˊ」誠 (竭) 不同" },
+            { id: 24, group: 7, question: "「ㄐㄧㄝ」曉", answer: "揭", distractors: ["竭", "接", "結"], note: "不同：與「ㄐㄧㄝˊ」誠 (竭) 不同" },
+            { id: 25, group: 7, question: "「ㄐㄧㄝˊ」誠", answer: "竭", distractors: ["揭", "潔", "結"], note: "不同：與「ㄐㄧㄝ」曉 (揭) 不同" },
+            { id: 26, group: 7, question: "「ㄐㄧㄝ」穿真相", answer: "揭", distractors: ["竭", "接", "結"], note: "相同：與「ㄐㄧㄝ」曉同字" },
+            { id: 27, group: 7, question: "「ㄐㄧㄝ」竿起義", answer: "揭", distractors: ["竭", "接", "結"], note: "相同：與「ㄐㄧㄝ」曉同字" },
+            { id: 28, group: 7, question: "聲嘶力「ㄐㄧㄝˊ」", answer: "竭", distractors: ["揭", "潔", "杰"], note: "相同：與「ㄐㄧㄝˊ」誠同字" },
+            { id: 29, group: 7, question: "「ㄒㄧㄝ」斯底里", answer: "歇", distractors: ["竭", "揭", "些"], note: "不同：與「ㄐㄧㄝˊ」誠 (竭) 不同" },
             // 8
-            { id: 801, question: "「ㄩㄥ」容華貴", answer: "雍", distractors: ["庸", "擁", "傭"], note: "不同：與附「ㄩㄥ」風雅 (庸) 不同" },
-            { id: 802, question: "附「ㄩㄥ」風雅", answer: "庸", distractors: ["雍", "擁", "傭"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
-            { id: 803, question: "「ㄩㄥ」俗不堪", answer: "庸", distractors: ["雍", "擁", "傭"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
-            { id: 804, question: "「ㄩㄥ」擠", answer: "擁", distractors: ["雍", "庸", "湧"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
-            { id: 805, question: "中「ㄩㄥ」之道", answer: "庸", distractors: ["雍", "擁", "用"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
+            { id: 30, group: 8, question: "「ㄩㄥ」容華貴", answer: "雍", distractors: ["庸", "擁", "傭"], note: "不同：與附「ㄩㄥ」風雅 (庸) 不同" },
+            { id: 31, group: 8, question: "附「ㄩㄥ」風雅", answer: "庸", distractors: ["雍", "擁", "傭"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
+            { id: 32, group: 8, question: "「ㄩㄥ」俗不堪", answer: "庸", distractors: ["雍", "擁", "傭"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
+            { id: 33, group: 8, question: "「ㄩㄥ」擠", answer: "擁", distractors: ["雍", "庸", "湧"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
+            { id: 34, group: 8, question: "中「ㄩㄥ」之道", answer: "庸", distractors: ["雍", "擁", "用"], note: "不同：與「ㄩㄥ」容華貴 (雍) 不同" },
             // 9
-            { id: 901, question: "「ㄒㄧㄝˊ」調", answer: "協", distractors: ["諧", "脅", "攜"], note: "不同：與和「ㄒㄧㄝˊ」 (諧) 不同" },
-            { id: 902, question: "和「ㄒㄧㄝˊ」相處", answer: "諧", distractors: ["協", "鞋", "攜"], note: "不同：與「ㄒㄧㄝˊ」調 (協) 不同" },
+            { id: 35, group: 9, question: "「ㄒㄧㄝˊ」調", answer: "協", distractors: ["諧", "脅", "攜"], note: "不同：與和「ㄒㄧㄝˊ」 (諧) 不同" },
+            { id: 36, group: 9, question: "和「ㄒㄧㄝˊ」相處", answer: "諧", distractors: ["協", "鞋", "攜"], note: "不同：與「ㄒㄧㄝˊ」調 (協) 不同" },
             // 10
-            { id: 1001, question: "半途而「ㄈㄟˋ」", answer: "廢", distractors: ["費", "肺", "吠"], note: "不同：與枉「ㄈㄟˋ」 (費) 不同" },
-            { id: 1002, question: "枉「ㄈㄟˋ」工夫", answer: "費", distractors: ["廢", "肺", "沸"], note: "不同：與半途而「ㄈㄟˋ」 (廢) 不同" },
-            { id: 1003, question: "「ㄈㄟˋ」寢忘食", answer: "廢", distractors: ["費", "肺", "沸"], note: "相同：與半途而「ㄈㄟˋ」同字" },
+            { id: 37, group: 10, question: "半途而「ㄈㄟˋ」", answer: "廢", distractors: ["費", "肺", "吠"], note: "不同：與枉「ㄈㄟˋ」 (費) 不同" },
+            { id: 38, group: 10, question: "枉「ㄈㄟˋ」工夫", answer: "費", distractors: ["廢", "肺", "沸"], note: "不同：與半途而「ㄈㄟˋ」 (廢) 不同" },
+            { id: 39, group: 10, question: "「ㄈㄟˋ」寢忘食", answer: "廢", distractors: ["費", "肺", "沸"], note: "相同：與半途而「ㄈㄟˋ」同字" },
             // 11
-            { id: 1101, question: "光「ㄇㄧㄥˊ」正大", answer: "明", distractors: ["名", "銘", "鳴"], note: "不同：與「ㄇㄧㄥˊ」列前茅 (名) 不同" },
-            { id: 1102, question: "「ㄇㄧㄥˊ」列前茅", answer: "名", distractors: ["明", "銘", "鳴"], note: "不同：與光「ㄇㄧㄥˊ」正大 (明) 不同" },
+            { id: 40, group: 11, question: "光「ㄇㄧㄥˊ」正大", answer: "明", distractors: ["名", "銘", "鳴"], note: "不同：與「ㄇㄧㄥˊ」列前茅 (名) 不同" },
+            { id: 41, group: 11, question: "「ㄇㄧㄥˊ」列前茅", answer: "名", distractors: ["明", "銘", "鳴"], note: "不同：與光「ㄇㄧㄥˊ」正大 (明) 不同" },
             // 12
-            { id: 1201, question: "信「ㄕˋ」旦旦", answer: "誓", distractors: ["勢", "世", "試"], note: "相同：與「ㄕˋ」不甘休同字" },
-            { id: 1202, question: "「ㄕˋ」不甘休", answer: "誓", distractors: ["勢", "世", "試"], note: "相同：與「ㄕˋ」誓旦旦同字" },
-            { id: 1203, question: "舉行宣「ㄕˋ」", answer: "誓", distractors: ["勢", "世", "試"], note: "不同：與「ㄕˋ」如破竹 (勢) 不同" },
-            { id: 1204, question: "「ㄕˋ」如破竹", answer: "勢", distractors: ["誓", "世", "試"], note: "不同：與宣「ㄕˋ」 (誓) 不同" },
+            { id: 42, group: 12, question: "「ㄕˋ」誓旦旦", answer: "誓", distractors: ["勢", "世", "試"], note: "相同：與「ㄕˋ」不甘休同字 (原詞:信誓旦旦)" },
+            { id: 43, group: 12, question: "「ㄕˋ」不甘休", answer: "誓", distractors: ["勢", "世", "試"], note: "相同：與「ㄕˋ」誓旦旦同字" },
+            { id: 44, group: 12, question: "舉行宣「ㄕˋ」", answer: "誓", distractors: ["勢", "世", "試"], note: "不同：與「ㄕˋ」如破竹 (勢) 不同" },
+            { id: 45, group: 12, question: "「ㄕˋ」如破竹", answer: "勢", distractors: ["誓", "世", "試"], note: "不同：與宣「ㄕˋ」 (誓) 不同" },
             // 13
-            { id: 1301, question: "「ㄒㄧㄥˋ ㄒㄧㄥˋ」然", answer: "悻", distractors: ["倖", "幸", "性"], note: "不同：與僥「ㄒㄧㄥˋ」 (倖) 不同" },
-            { id: 1302, question: "僥「ㄒㄧㄥˋ」", answer: "倖", distractors: ["悻", "幸", "性"], note: "不同：與「ㄒㄧㄥˋ」然 (悻) 不同" },
-            { id: 1303, question: "「ㄒㄧㄥˋ」災樂禍", answer: "幸", distractors: ["悻", "倖", "性"], note: "不同：與「ㄒㄧㄥˋ」然 (悻) 不同" },
+            { id: 46, group: 13, question: "「ㄒㄧㄥˋ ㄒㄧㄥˋ」然", answer: "悻", distractors: ["倖", "幸", "性"], note: "不同：與僥「ㄒㄧㄥˋ」 (倖) 不同" },
+            { id: 47, group: 13, question: "僥「ㄒㄧㄥˋ」", answer: "倖", distractors: ["悻", "幸", "性"], note: "不同：與「ㄒㄧㄥˋ」然 (悻) 不同" },
+            { id: 48, group: 13, question: "「ㄒㄧㄥˋ」災樂禍", answer: "幸", distractors: ["悻", "倖", "性"], note: "不同：與「ㄒㄧㄥˋ」然 (悻) 不同" },
             // 14
-            { id: 1401, question: "不「ㄒㄧㄝˋ」", answer: "屑", distractors: ["肖", "懈", "謝"], note: "不同：與不「ㄒㄧㄠˋ」子 (肖) 不同" },
-            { id: 1402, question: "不「ㄒㄧㄠˋ」子", answer: "肖", distractors: ["屑", "孝", "笑"], note: "不同：與不「ㄒㄧㄝˋ」 (屑) 不同" },
-            { id: 1403, question: "夙夜匪「ㄒㄧㄝˋ」", answer: "懈", distractors: ["屑", "謝", "械"], note: "不同：與不「ㄒㄧㄝˋ」 (屑) 不同" },
+            { id: 49, group: 14, question: "不「ㄒㄧㄝˋ」", answer: "屑", distractors: ["肖", "懈", "謝"], note: "不同：與不「ㄒㄧㄠˋ」子 (肖) 不同" },
+            { id: 50, group: 14, question: "不「ㄒㄧㄠˋ」子", answer: "肖", distractors: ["屑", "孝", "笑"], note: "不同：與不「ㄒㄧㄝˋ」 (屑) 不同" },
+            { id: 51, group: 14, question: "夙夜匪「ㄒㄧㄝˋ」", answer: "懈", distractors: ["屑", "謝", "械"], note: "不同：與不「ㄒㄧㄝˋ」 (屑) 不同" },
             // 15
-            { id: 1501, question: "「ㄧㄡ」人", answer: "尤", distractors: ["由", "優", "憂"], note: "不同：與「ㄧㄡˊ」命 (由) 不同" },
-            { id: 1502, question: "「ㄧㄡˊ」命", answer: "由", distractors: ["尤", "游", "油"], note: "不同：與「ㄧㄡ」人 (尤) 不同" },
-            { id: 1503, question: "「ㄧㄡ」來", answer: "由", distractors: ["尤", "游", "油"], note: "不同：與「ㄧㄡ」人 (尤) 不同" },
+            { id: 52, group: 15, question: "「ㄧㄡ」人", answer: "尤", distractors: ["由", "優", "憂"], note: "不同：與「ㄧㄡˊ」命 (由) 不同" },
+            { id: 53, group: 15, question: "「ㄧㄡˊ」命", answer: "由", distractors: ["尤", "游", "油"], note: "不同：與「ㄧㄡ」人 (尤) 不同" },
+            { id: 54, group: 15, question: "「ㄧㄡ」來", answer: "由", distractors: ["尤", "游", "油"], note: "不同：與「ㄧㄡ」人 (尤) 不同" },
             // 16
-            { id: 1601, question: "「ㄐㄧ」礎", answer: "基", distractors: ["積", "雞", "機"], note: "不同：與「ㄐㄧ」非成是 (積) 不同" },
-            { id: 1602, question: "「ㄐㄧ」非成是", answer: "積", distractors: ["基", "績", "擊"], note: "不同：與「ㄐㄧ」礎 (基) 不同" },
+            { id: 55, group: 16, question: "「ㄐㄧ」礎", answer: "基", distractors: ["積", "雞", "機"], note: "不同：與「ㄐㄧ」非成是 (積) 不同" },
+            { id: 56, group: 16, question: "「ㄐㄧ」非成是", answer: "積", distractors: ["基", "績", "擊"], note: "不同：與「ㄐㄧ」礎 (基) 不同" },
             // 17
-            { id: 1701, question: "「ㄓㄨ」子百家", answer: "諸", distractors: ["鑄", "珠", "朱"], note: "相同：與公「ㄓㄨ」於世同字" },
-            { id: 1702, question: "公「ㄓㄨ」於世", answer: "諸", distractors: ["鑄", "珠", "朱"], note: "相同：與「ㄓㄨ」子百家同字" },
-            { id: 1703, question: "「ㄓㄨˋ」造", answer: "鑄", distractors: ["諸", "築", "助"], note: "不同：與公「ㄓㄨ」 (諸) 不同" },
+            { id: 57, group: 17, question: "「ㄓㄨ」子百家", answer: "諸", distractors: ["鑄", "珠", "朱"], note: "相同：與公「ㄓㄨ」於世同字" },
+            { id: 58, group: 17, question: "公「ㄓㄨ」於世", answer: "諸", distractors: ["鑄", "珠", "朱"], note: "相同：與「ㄓㄨ」子百家同字" },
+            { id: 59, group: 17, question: "「ㄓㄨˋ」造", answer: "鑄", distractors: ["諸", "築", "助"], note: "不同：與公「ㄓㄨ」 (諸) 不同" },
             // 18
-            { id: 1801, question: "「ㄔㄤˋ」所欲言", answer: "暢", distractors: ["倡", "猖", "唱"], note: "不同：與提「ㄔㄤˋ」 (倡) 不同" },
-            { id: 1802, question: "提「ㄔㄤˋ」", answer: "倡", distractors: ["暢", "猖", "唱"], note: "不同：與「ㄔㄤˋ」所欲言 (暢) 不同" },
-            { id: 1803, question: "「ㄔㄤ」獗", answer: "猖", distractors: ["倡", "暢", "昌"], note: "不同：與提「ㄔㄤˋ」 (倡) 不同" },
-            { id: 1804, question: "「ㄔㄤ」盛", answer: "昌", distractors: ["倡", "猖", "暢"], note: "不同：與提「ㄔㄤˋ」 (倡) 不同" },
+            { id: 60, group: 18, question: "「ㄔㄤˋ」所欲言", answer: "暢", distractors: ["倡", "猖", "唱"], note: "不同：與提「ㄔㄤˋ」 (倡) 不同" },
+            { id: 61, group: 18, question: "提「ㄔㄤˋ」", answer: "倡", distractors: ["暢", "猖", "唱"], note: "不同：與「ㄔㄤˋ」所欲言 (暢) 不同" },
+            { id: 62, group: 18, question: "「ㄔㄤ」獗", answer: "猖", distractors: ["倡", "暢", "昌"], note: "不同：與提「ㄔㄤˋ」 (倡) 不同" },
+            { id: 63, group: 18, question: "「ㄔㄤ」盛", answer: "昌", distractors: ["倡", "猖", "暢"], note: "不同：與提「ㄔㄤˋ」 (倡) 不同" },
             // 19
-            { id: 1901, question: "敗者為「ㄎㄡˋ」", answer: "寇", distractors: ["叩", "扣", "蔻"], note: "相同：與窮「ㄎㄡˋ」莫追同字" },
-            { id: 1902, question: "窮「ㄎㄡˋ」莫追", answer: "寇", distractors: ["叩", "扣", "蔻"], note: "相同：與敗者為「ㄎㄡˋ」同字" },
+            { id: 64, group: 19, question: "敗者為「ㄎㄡˋ」", answer: "寇", distractors: ["叩", "扣", "蔻"], note: "相同：與窮「ㄎㄡˋ」莫追同字" },
+            { id: 65, group: 19, question: "窮「ㄎㄡˋ」莫追", answer: "寇", distractors: ["叩", "扣", "蔻"], note: "相同：與敗者為「ㄎㄡˋ」同字" },
             // 20
-            { id: 2001, question: "愛的真「ㄉㄧˋ」", answer: "諦", distractors: ["蒂", "帝", "地"], note: "不同：與瓜熟「ㄉㄧˋ」落 (蒂) 不同" },
-            { id: 2002, question: "瓜熟「ㄉㄧˋ」落", answer: "蒂", distractors: ["諦", "地", "第"], note: "不同：與真「ㄉㄧˋ」 (諦) 不同" },
+            { id: 66, group: 20, question: "愛的真「ㄉㄧˋ」", answer: "諦", distractors: ["蒂", "帝", "地"], note: "不同：與瓜熟「ㄉㄧˋ」落 (蒂) 不同" },
+            { id: 67, group: 20, question: "瓜熟「ㄉㄧˋ」落", answer: "蒂", distractors: ["諦", "地", "第"], note: "不同：與真「ㄉㄧˋ」 (諦) 不同" },
             // 21
-            { id: 2101, question: "懈「ㄉㄞˋ」", answer: "怠", distractors: ["殆", "待", "代"], note: "不同：與危「ㄉㄞˋ」 (殆) 不同" },
-            { id: 2102, question: "危「ㄉㄞˋ」", answer: "殆", distractors: ["怠", "待", "代"], note: "不同：與懈「ㄉㄞˋ」 (怠) 不同" },
-            { id: 2103, question: "「ㄧˊ」笑大方", answer: "貽", distractors: ["怡", "遺", "移"], note: "比較：懈「ㄉㄞˋ」 (怠)" },
+            { id: 68, group: 21, question: "懈「ㄉㄞˋ」", answer: "怠", distractors: ["殆", "待", "代"], note: "不同：與危「ㄉㄞˋ」 (殆) 不同" },
+            { id: 69, group: 21, question: "危「ㄉㄞˋ」", answer: "殆", distractors: ["怠", "待", "代"], note: "不同：與懈「ㄉㄞˋ」 (怠) 不同" },
+            { id: 70, group: 21, question: "「ㄧˊ」笑大方", answer: "貽", distractors: ["怡", "遺", "移"], note: "比較：懈「ㄉㄞˋ」 (怠)" },
             // 22
-            { id: 2201, question: "「ㄓㄥ」先恐後", answer: "爭", distractors: ["睜", "征", "蒸"], note: "不同：與「ㄓㄥ」眼 (睜) 不同" },
-            { id: 2202, question: "「ㄓㄥ」眼說瞎話", answer: "睜", distractors: ["爭", "征", "蒸"], note: "不同：與「ㄓㄥ」先 (爭) 不同" },
+            { id: 71, group: 22, question: "「ㄓㄥ」先恐後", answer: "爭", distractors: ["睜", "征", "蒸"], note: "不同：與「ㄓㄥ」眼 (睜) 不同" },
+            { id: 72, group: 22, question: "「ㄓㄥ」眼說瞎話", answer: "睜", distractors: ["爭", "征", "蒸"], note: "不同：與「ㄓㄥ」先 (爭) 不同" },
             // 23
-            { id: 2301, question: "外貨充「ㄔˋ」", answer: "斥", distractors: ["赤", "叱", "敕"], note: "相同：與「ㄔˋ」資擴廠同字" },
-            { id: 2302, question: "「ㄔˋ」資擴廠", answer: "斥", distractors: ["赤", "叱", "敕"], note: "相同：與外貨充「ㄔˋ」同字" },
-            { id: 2303, question: "排「ㄔˋ」", answer: "斥", distractors: ["赤", "叱", "敕"], note: "不同：與「ㄔˋ」吒風雲 (叱) 不同" },
-            { id: 2304, question: "「ㄔˋ」吒風雲", answer: "叱", distractors: ["斥", "赤", "敕"], note: "不同：與排「ㄔˋ」 (斥) 不同" },
-            { id: 2305, question: "近朱者「ㄔˋ」", answer: "赤", distractors: ["斥", "叱", "敕"], note: "不同：與排「ㄔˋ」 (斥) 不同" },
+            { id: 73, group: 23, question: "外貨充「ㄔˋ」", answer: "斥", distractors: ["赤", "叱", "敕"], note: "相同：與「ㄔˋ」資擴廠同字" },
+            { id: 74, group: 23, question: "「ㄔˋ」資擴廠", answer: "斥", distractors: ["赤", "叱", "敕"], note: "相同：與外貨充「ㄔˋ」同字" },
+            { id: 75, group: 23, question: "排「ㄔˋ」", answer: "斥", distractors: ["赤", "叱", "敕"], note: "不同：與「ㄔˋ」吒風雲 (叱) 不同" },
+            { id: 76, group: 23, question: "「ㄔˋ」吒風雲", answer: "叱", distractors: ["斥", "赤", "敕"], note: "不同：與排「ㄔˋ」 (斥) 不同" },
+            { id: 77, group: 23, question: "近朱者「ㄔˋ」", answer: "赤", distractors: ["斥", "叱", "敕"], note: "不同：與排「ㄔˋ」 (斥) 不同" },
             // 24
-            { id: 2401, question: "戰戰「ㄐㄧㄥ ㄐㄧㄥ」", answer: "兢", distractors: ["競", "驚", "精"], note: "不同：與「ㄐㄧㄥˋ」爭 (競) 不同" },
-            { id: 2402, question: "「ㄐㄧㄥˋ」爭激烈", answer: "競", distractors: ["兢", "勁", "敬"], note: "不同：與戰戰「ㄐㄧㄥ」 (兢) 不同" },
-            { id: 2403, question: "強「ㄐㄧㄥˋ」", answer: "勁", distractors: ["競", "敬", "徑"], note: "不同：與「ㄐㄧㄥˋ」爭 (競) 不同" },
-            { id: 2404, question: "不「ㄐㄧㄥˋ」而走", answer: "脛", distractors: ["競", "勁", "徑"], note: "不同：與「ㄐㄧㄥˋ」爭 (競) 不同" },
+            { id: 78, group: 24, question: "戰戰「ㄐㄧㄥ ㄐㄧㄥ」", answer: "兢", distractors: ["競", "驚", "精"], note: "不同：與「ㄐㄧㄥˋ」爭 (競) 不同" },
+            { id: 79, group: 24, question: "「ㄐㄧㄥˋ」爭激烈", answer: "競", distractors: ["兢", "勁", "敬"], note: "不同：與戰戰「ㄐㄧㄥ」 (兢) 不同" },
+            { id: 80, group: 24, question: "強「ㄐㄧㄥˋ」", answer: "勁", distractors: ["競", "敬", "徑"], note: "不同：與「ㄐㄧㄥˋ」爭 (競) 不同" },
+            { id: 81, group: 24, question: "不「ㄐㄧㄥˋ」而走", answer: "脛", distractors: ["競", "勁", "徑"], note: "不同：與「ㄐㄧㄥˋ」爭 (競) 不同" },
             // 25
-            { id: 2501, question: "「ㄩˋ」教於樂", answer: "寓", distractors: ["遇", "譽", "育"], note: "相同：與「ㄩˋ」意深刻同字" },
-            { id: 2502, question: "「ㄩˋ」意深刻", answer: "寓", distractors: ["遇", "譽", "育"], note: "相同：與「ㄩˋ」教於樂同字" },
-            { id: 2503, question: "「ㄩˋ」於健全身體", answer: "寓", distractors: ["遇", "譽", "育"], note: "相同：與「ㄩˋ」教於樂同字" },
-            { id: 2504, question: "待「ㄩˋ」", answer: "遇", distractors: ["寓", "譽", "育"], note: "不同：與「ㄩˋ」於健全 (寓) 不同" },
-            { id: 2505, question: "榮「ㄩˋ」", answer: "譽", distractors: ["寓", "遇", "育"], note: "不同：與「ㄩˋ」於健全 (寓) 不同" },
+            { id: 82, group: 25, question: "「ㄩˋ」教於樂", answer: "寓", distractors: ["遇", "譽", "育"], note: "相同：與「ㄩˋ」意深刻同字" },
+            { id: 83, group: 25, question: "「ㄩˋ」意深刻", answer: "寓", distractors: ["遇", "譽", "育"], note: "相同：與「ㄩˋ」教於樂同字" },
+            { id: 84, group: 25, question: "「ㄩˋ」於健全身體", answer: "寓", distractors: ["遇", "譽", "育"], note: "相同：與「ㄩˋ」教於樂同字" },
+            { id: 85, group: 25, question: "待「ㄩˋ」", answer: "遇", distractors: ["寓", "譽", "育"], note: "不同：與「ㄩˋ」於健全 (寓) 不同" },
+            { id: 86, group: 25, question: "榮「ㄩˋ」", answer: "譽", distractors: ["寓", "遇", "育"], note: "不同：與「ㄩˋ」於健全 (寓) 不同" },
             // 26
-            { id: 2601, question: "地「ㄌㄧㄥˊ」人傑", answer: "靈", distractors: ["零", "玲", "伶"], note: "不同：與感激涕「ㄌㄧㄥˊ」 (零) 不同" },
-            { id: 2602, question: "感激涕「ㄌㄧㄥˊ」", answer: "零", distractors: ["靈", "玲", "伶"], note: "不同：與地「ㄌㄧㄥˊ」 (靈) 不同" },
+            { id: 87, group: 26, question: "地「ㄌㄧㄥˊ」人傑", answer: "靈", distractors: ["零", "玲", "伶"], note: "不同：與感激涕「ㄌㄧㄥˊ」 (零) 不同" },
+            { id: 88, group: 26, question: "感激涕「ㄌㄧㄥˊ」", answer: "零", distractors: ["靈", "玲", "伶"], note: "不同：與地「ㄌㄧㄥˊ」 (靈) 不同" },
             // 27
-            { id: 2701, question: "天經地「ㄧˋ」", answer: "義", distractors: ["意", "異", "易"], note: "相同：與忘恩負「ㄧˋ」同字" },
-            { id: 2702, question: "忘恩負「ㄧˋ」", answer: "義", distractors: ["意", "異", "易"], note: "相同：與天經地「ㄧˋ」同字" },
-            { id: 2703, question: "「ㄧˋ」氣", answer: "義", distractors: ["意", "異", "易"], note: "不同：與「ㄧˋ」見 (意) 不同" },
-            { id: 2704, question: "「ㄧˋ」見", answer: "意", distractors: ["義", "異", "易"], note: "不同：與「ㄧˋ」氣 (義) 不同" },
+            { id: 89, group: 27, question: "天經地「ㄧˋ」", answer: "義", distractors: ["意", "異", "易"], note: "相同：與忘恩負「ㄧˋ」同字" },
+            { id: 90, group: 27, question: "忘恩負「ㄧˋ」", answer: "義", distractors: ["意", "異", "易"], note: "相同：與天經地「ㄧˋ」同字" },
+            { id: 91, group: 27, question: "「ㄧˋ」氣", answer: "義", distractors: ["意", "異", "易"], note: "不同：與「ㄧˋ」見 (意) 不同" },
+            { id: 92, group: 27, question: "「ㄧˋ」見", answer: "意", distractors: ["義", "異", "易"], note: "不同：與「ㄧˋ」氣 (義) 不同" },
             // 28
-            { id: 2801, question: "「ㄕㄣ」惡痛絕", answer: "深", distractors: ["申", "伸", "身"], note: "相同：與「ㄕㄣ」居簡出同字" },
-            { id: 2802, question: "「ㄕㄣ」居簡出", answer: "深", distractors: ["申", "伸", "身"], note: "相同：與「ㄕㄣ」惡痛絕同字" },
+            { id: 93, group: 28, question: "「ㄕㄣ」惡痛絕", answer: "深", distractors: ["申", "伸", "身"], note: "相同：與「ㄕㄣ」居簡出同字" },
+            { id: 94, group: 28, question: "「ㄕㄣ」居簡出", answer: "深", distractors: ["申", "伸", "身"], note: "相同：與「ㄕㄣ」惡痛絕同字" },
             // 29
-            { id: 2901, question: "百無「ㄌㄧㄠˊ」賴", answer: "聊", distractors: ["寥", "遼", "僚"], note: "不同：與「ㄌㄧㄠˊ」勝於無 (寥) 不同" },
-            { id: 2902, question: "「ㄌㄧㄠˊ」勝於無", answer: "寥", distractors: ["聊", "遼", "僚"], note: "不同：與百無「ㄌㄧㄠˊ」 (聊) 不同" },
+            { id: 95, group: 29, question: "百無「ㄌㄧㄠˊ」賴", answer: "聊", distractors: ["寥", "遼", "僚"], note: "不同：與「ㄌㄧㄠˊ」勝於無 (寥) 不同" },
+            { id: 96, group: 29, question: "「ㄌㄧㄠˊ」勝於無", answer: "寥", distractors: ["聊", "遼", "僚"], note: "不同：與百無「ㄌㄧㄠˊ」 (聊) 不同" },
             // 30
-            { id: 3001, question: "寡廉鮮「ㄔˇ」", answer: "恥", distractors: ["齒", "尺", "侈"], note: "不同：與令人不「ㄔˇ」 (齒) 不同" },
-            { id: 3002, question: "令人不「ㄔˇ」", answer: "齒", distractors: ["恥", "尺", "侈"], note: "不同：與寡廉鮮「ㄔˇ」 (恥) 不同" },
+            { id: 97, group: 30, question: "寡廉鮮「ㄔˇ」", answer: "恥", distractors: ["齒", "尺", "侈"], note: "不同：與令人不「ㄔˇ」 (齒) 不同" },
+            { id: 98, group: 30, question: "令人不「ㄔˇ」", answer: "齒", distractors: ["恥", "尺", "侈"], note: "不同：與寡廉鮮「ㄔˇ」 (恥) 不同" },
             // 31
-            { id: 3101, question: "「ㄨㄟˋ」造文書", answer: "偽", distractors: ["為", "魏", "衛"], note: "不同：與「ㄨㄟˋ」國效忠 (為) 不同" },
-            { id: 3102, question: "「ㄨㄟˋ」國效忠", answer: "為", distractors: ["偽", "魏", "衛"], note: "不同：與「ㄨㄟˋ」造文書 (偽) 不同" },
+            { id: 99, group: 31, question: "「ㄨㄟˋ」造文書", answer: "偽", distractors: ["為", "魏", "衛"], note: "不同：與「ㄨㄟˋ」國效忠 (為) 不同" },
+            { id: 100, group: 31, question: "「ㄨㄟˋ」國效忠", answer: "為", distractors: ["偽", "魏", "衛"], note: "不同：與「ㄨㄟˋ」造文書 (偽) 不同" },
             // 32
-            { id: 3201, question: "垂死掙「ㄓㄚ」", answer: "扎", distractors: ["札", "紮", "柵"], note: "不同：與生活「ㄓㄚˊ」記 (札) 不同" },
-            { id: 3202, question: "生活「ㄓㄚˊ」記", answer: "札", distractors: ["扎", "紮", "柵"], note: "不同：與垂死掙「ㄓㄚ」 (扎) 不同" },
+            { id: 101, group: 32, question: "垂死掙「ㄓㄚ」", answer: "扎", distractors: ["札", "紮", "柵"], note: "不同：與生活「ㄓㄚˊ」記 (札) 不同" },
+            { id: 102, group: 32, question: "生活「ㄓㄚˊ」記", answer: "札", distractors: ["扎", "紮", "柵"], note: "不同：與垂死掙「ㄓㄚ」 (扎) 不同" },
             // 33
-            { id: 3301, question: "始終不「ㄩˊ」", answer: "渝", distractors: ["愈", "逾", "愉"], note: "不同：與每況「ㄩˋ」下 (愈) 不同" },
-            { id: 3302, question: "每況「ㄩˋ」下", answer: "愈", distractors: ["渝", "逾", "癒"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
-            { id: 3303, question: "不「ㄩˊ」矩", answer: "踰", distractors: ["渝", "愈", "逾"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
-            { id: 3304, question: "「ㄩˊ」時不候", answer: "逾", distractors: ["渝", "愈", "踰"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
-            { id: 3305, question: "覬「ㄩˊ」", answer: "覦", distractors: ["渝", "逾", "愈"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
+            { id: 103, group: 33, question: "始終不「ㄩˊ」", answer: "渝", distractors: ["愈", "逾", "愉"], note: "不同：與每況「ㄩˋ」下 (愈) 不同" },
+            { id: 104, group: 33, question: "每況「ㄩˋ」下", answer: "愈", distractors: ["渝", "逾", "癒"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
+            { id: 105, group: 33, question: "不「ㄩˊ」矩", answer: "踰", distractors: ["渝", "愈", "逾"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
+            { id: 106, group: 33, question: "「ㄩˊ」時不候", answer: "逾", distractors: ["渝", "愈", "踰"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
+            { id: 107, group: 33, question: "覬「ㄩˊ」", answer: "覦", distractors: ["渝", "逾", "愈"], note: "不同：與始終不「ㄩˊ」 (渝) 不同" },
             // 34
-            { id: 3401, question: "夢「ㄧㄢˇ」", answer: "魘", distractors: ["靨", "饜", "掩"], note: "不同：與笑「ㄧㄝˋ」 (靨) 不同" },
-            { id: 3402, question: "笑「ㄧㄝˋ」", answer: "靨", distractors: ["魘", "饜", "夜"], note: "不同：與夢「ㄧㄢˇ」 (魘) 不同" },
-            { id: 3403, question: "貪得無「ㄧㄢˋ」", answer: "饜", distractors: ["魘", "靨", "厭"], note: "不同：與夢「ㄧㄢˇ」 (魘) 不同" },
+            { id: 108, group: 34, question: "夢「ㄧㄢˇ」", answer: "魘", distractors: ["靨", "饜", "掩"], note: "不同：與笑「ㄧㄝˋ」 (靨) 不同" },
+            { id: 109, group: 34, question: "笑「ㄧㄝˋ」", answer: "靨", distractors: ["魘", "饜", "夜"], note: "不同：與夢「ㄧㄢˇ」 (魘) 不同" },
+            { id: 110, group: 34, question: "貪得無「ㄧㄢˋ」", answer: "饜", distractors: ["魘", "靨", "厭"], note: "不同：與夢「ㄧㄢˇ」 (魘) 不同" },
             // 35
-            { id: 3501, question: "懸「ㄧㄚˊ」", answer: "崖", distractors: ["涯", "捱", "亞"], note: "不同：與天「ㄧㄚˊ」 (涯) 不同" },
-            { id: 3502, question: "天「ㄧㄚˊ」海角", answer: "涯", distractors: ["崖", "捱", "亞"], note: "不同：與懸「ㄧㄚˊ」 (崖) 不同" },
-            { id: 3503, question: "「ㄞˊ」罵", answer: "捱", distractors: ["崖", "涯", "挨"], note: "不同：與懸「ㄧㄚˊ」 (崖) 不同" },
+            { id: 111, group: 35, question: "懸「ㄧㄚˊ」", answer: "崖", distractors: ["涯", "捱", "亞"], note: "不同：與天「ㄧㄚˊ」 (涯) 不同" },
+            { id: 112, group: 35, question: "天「ㄧㄚˊ」海角", answer: "涯", distractors: ["崖", "捱", "亞"], note: "不同：與懸「ㄧㄚˊ」 (崖) 不同" },
+            { id: 113, group: 35, question: "「ㄞˊ」罵", answer: "捱", distractors: ["崖", "涯", "挨"], note: "不同：與懸「ㄧㄚˊ」 (崖) 不同" },
             // 36
-            { id: 3601, question: "火「ㄐㄩˋ」", answer: "炬", distractors: ["鉅", "具", "據"], note: "不同：與「ㄐㄩˋ」細靡遺 (鉅) 不同" },
-            { id: 3602, question: "「ㄐㄩˋ」細靡遺", answer: "鉅", distractors: ["炬", "具", "據"], note: "不同：與火「ㄐㄩˋ」 (炬) 不同" },
+            { id: 114, group: 36, question: "火「ㄐㄩˋ」", answer: "炬", distractors: ["鉅", "具", "據"], note: "不同：與「ㄐㄩˋ」細靡遺 (鉅) 不同" },
+            { id: 115, group: 36, question: "「ㄐㄩˋ」細靡遺", answer: "鉅", distractors: ["炬", "具", "據"], note: "不同：與火「ㄐㄩˋ」 (炬) 不同" },
             // 37
-            { id: 3701, question: "「ㄕㄨㄛˋ」大", answer: "碩", distractors: ["朔", "塑", "數"], note: "不同：與撲「ㄕㄨㄛˋ」 (朔) 不同" },
-            { id: 3702, question: "撲「ㄕㄨㄛˋ」迷離", answer: "朔", distractors: ["碩", "塑", "數"], note: "不同：與「ㄕㄨㄛˋ」大 (碩) 不同" },
-            { id: 3703, question: "「ㄙㄨˋ」造", answer: "塑", distractors: ["朔", "碩", "素"], note: "不同：與撲「ㄕㄨㄛˋ」 (朔) 不同" },
+            { id: 116, group: 37, question: "「ㄕㄨㄛˋ」大", answer: "碩", distractors: ["朔", "塑", "數"], note: "不同：與撲「ㄕㄨㄛˋ」 (朔) 不同" },
+            { id: 117, group: 37, question: "撲「ㄕㄨㄛˋ」迷離", answer: "朔", distractors: ["碩", "塑", "數"], note: "不同：與「ㄕㄨㄛˋ」大 (碩) 不同" },
+            { id: 118, group: 37, question: "「ㄙㄨˋ」造", answer: "塑", distractors: ["朔", "碩", "素"], note: "不同：與撲「ㄕㄨㄛˋ」 (朔) 不同" },
         ];
 
         // --- Helper Functions ---
@@ -427,8 +428,8 @@
                              </div>
                         </div>
                         <div className="p-4 flex-1 bg-white flex items-center">
-                            <ArrowRightLeft size={32} className="text-stone-400 mr-2 shrink-0" />
-                            <p className="text-stone-600 text-xl font-bold">{item.note}</p>
+                            <ArrowRightLeft size={16} className="text-stone-400 mr-2 shrink-0" />
+                            <p className="text-stone-600 text-sm font-medium">{item.note}</p>
                         </div>
                     </div>
                   ))}
@@ -528,10 +529,10 @@
                                 </div>
                                 {isAnswered && (
                                     <div className="mt-4 pt-4 border-t border-black/5 animate-in fade-in slide-in-from-top-2">
-                                        <div className="bg-white/60 p-3 rounded-lg border border-stone-100 flex items-start gap-3">
-                                            <ArrowRightLeft size={40} className="text-orange-500 mt-1 shrink-0"/>
+                                        <div className="bg-white/60 p-3 rounded-lg border border-stone-100 flex items-start gap-2">
+                                            <ArrowRightLeft size={18} className="text-orange-500 mt-0.5 shrink-0"/>
                                             <div>
-                                                <p className="text-stone-800 text-2xl font-bold">{item.note}</p>
+                                                <p className="text-stone-800 font-medium">{item.note}</p>
                                             </div>
                                         </div>
                                     </div>
